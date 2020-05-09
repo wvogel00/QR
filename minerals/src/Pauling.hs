@@ -35,10 +35,3 @@ coordinateN' r1 r2
     | r1/r2 < 0.414 = 4
     | r1/r2 < 0.732 = 6
     | otherwise = 8
-
-madelungConst :: Ion -> Ion -> Distance -> Float
-madelungConst a b r0 = -((fromIntegral $ eN a)^2)/(4*pi*e0*r0) + c/r0^n where
-    c = 1
-    n = 1
-    e0 = 4*pi/cv/cv*10**7
-    cv = 2.99792458 * 10**8
