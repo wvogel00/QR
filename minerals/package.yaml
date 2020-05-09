@@ -23,6 +23,8 @@ dependencies:
 - base >= 4.7 && < 5
 - trifecta >= 1.7
 - parsec >= 3.1
+- not-gloss
+- linear
 
 library:
   source-dirs: src
