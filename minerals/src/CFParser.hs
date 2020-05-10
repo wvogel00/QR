@@ -1,12 +1,17 @@
-module CFParser where
-    -- parser for chemical formula
+module CFParser(runParseCF) where
+-- parser for chemical formula
 
 import Text.Trifecta
+import Text.Trifecta.Delta (Delta(..))
 import Data.List
 import Data.Maybe
 import Control.Applicative
 import Type
 
+runParseCF :: String -> Result [(Maybe Element, Int)]
+runParseCF = parseString parseCF startPos
+
+startPos = Columns 0 0
 
 parseCF :: Parser [(Maybe Element, Int)]
 parseCF = (:) <$> element <*> many element
@@ -18,6 +23,4 @@ element = (tuple <$> upper <*> try (many lower) <*> try (many digit)) where
     safeRead x = read x
 
 findElem :: String -> Maybe Element
-findElem elem = findElem $ filter ((==elem).show) [Na ..] where
-    findElem [] = Nothing
-    findElem [a] = Just a
+findElem elem = find((==elem).show) [Na ..]
