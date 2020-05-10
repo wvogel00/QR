@@ -39,9 +39,7 @@ xml = do
     symbol "</element>" >> spaces
     return XML{name=n, structure=st, _a=a, _c=c, _density=d, _ions=is}
 
-elemName = (f.findElem) <$> (symbol "<name>" *> many alphaNum <* symbol "</name>") where
-    f Nothing = H
-    f (Just x) = x
+elemName = fromJust.findElem <$> (symbol "<name>" *> many alphaNum <* symbol "</name>")
 
 elemStructure :: Parser (Maybe Structure)
 elemStructure = classify <$> (symbol "<structure>" *> many alphaNum <* symbol "</structure>") where
@@ -82,4 +80,4 @@ getPole '-' = Minus
 getPole _ = Plus
 
 findElem :: String -> Maybe Element
-findElem elem = find((==elem).show) [Na ..]
+findElem elem = find((==elem).show) [H ..]
