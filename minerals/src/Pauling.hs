@@ -33,5 +33,5 @@ coordinateN' r1 r2
     | r1/r2 < 0.155 = 2
     | r1/r2 < 0.225 = 3
     | r1/r2 < 0.414 = 4
-    | r1/r2 < 0.732 = 6
-    | otherwise = 8
+    | r1/r2 < 0.732 = 6 -- NaCl型
+    | otherwise = 8     -- CsCl型
