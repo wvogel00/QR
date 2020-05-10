@@ -23,4 +23,4 @@ element = (tuple <$> upper <*> try (many lower) <*> try (many digit)) where
     safeRead x = read x
 
 findElem :: String -> Maybe Element
-findElem elem = find((==elem).show) [Na ..]
+findElem elem = find((==elem).show) [H ..]
