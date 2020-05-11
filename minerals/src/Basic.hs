@@ -3,9 +3,19 @@ module Basic where
 import Vis
 import Linear.V3
 import Type
+import Text.Trifecta.Result
+
+fromSuccess v = case v of
+    Success a -> a
+    Failure _ -> []
+
+drawFormula :: String -> VisObject Float
+drawFormula formula = Text3d formula (V3 2 0.5 0) TimesRoman24 black
+
+drawText str = Text3d str (V3 2 1.5 0) TimesRoman24 black
+
 
 testModel = VisObjects $ testText:testpolyText:testModel1:testModel2
-
 testText = Text3d "NaCl" (V3 2 0.5 0) TimesRoman24 black
 testpolyText = Text3d (show HCP) (V3 2 1.5 0) TimesRoman24 black
 

@@ -469,6 +469,8 @@
     <element>
         <name>Tc</name>
         <structure>hcp</structure>
+        <a>0.247</a>
+        <c>0.440</c>
         <density>11.5</density>
     </element>
 
@@ -665,7 +667,7 @@
 
     <element>
         <name>Au</name>
-        <structure>bcc</structure>
+        <structure>fcc</structure>
         <a>0.408</a>
         <density>19.3</density>
         <ion>

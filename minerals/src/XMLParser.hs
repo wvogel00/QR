@@ -6,6 +6,7 @@ import Text.Trifecta.Delta (Delta(..))
 import Data.List
 import Data.Maybe
 import Control.Applicative
+import Basic
 import Type
 
 runParseXML :: String -> Result [XML]
