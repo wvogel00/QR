@@ -27,6 +27,15 @@ data Element =
 
 data Structure = HCP | CCP | FCC | BCC | Some deriving (Eq)
 
+-- 14種類のブラべ格子
+-- P..単純 I..体心 F..面心 C..底心
+data Bravais = PCube | ICube | FCube | PSquare | ISquare
+            | PDiagonal | IDiagonal | FDiagonal | CDiagonal
+            | PHexagonal | PTrigonal | RTrigonal
+            | PMonoclinic | CMonoclinic | PTriclinic
+            | ClosestHexagonal -- 最密六方格子
+            deriving (Eq, Show)
+
 --原子の配置は，頂点で共有 > 稜で共有 > 面で共有 の順に安定
 data Polyhedron = Vertex | Ridge | Surface deriving (Eq, Show, Enum, Ord)
 

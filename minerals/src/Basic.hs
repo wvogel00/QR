@@ -10,7 +10,7 @@ fromSuccess v = case v of
     Failure _ -> []
 
 drawFormula :: String -> VisObject Float
-drawFormula formula = Text3d formula (V3 2 0.5 0) TimesRoman24 black
+drawFormula formula = Text3d formula (V3 1.2 0.5 0) TimesRoman24 black
 
 drawText str = Text3d str (V3 2 1.5 0) TimesRoman24 black
 
