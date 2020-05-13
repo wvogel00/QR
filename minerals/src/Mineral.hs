@@ -32,7 +32,7 @@ hcpMonoStructure a c = bones ++ elems where
     
 -- 立方最密格子
 ccpMonoStructure a = bones ++ (map applyMove.zip poses $ repeat (Sphere (a/3) Solid yellow)) where
-    (bones,poses) = bravais FCube (a,Nothing, Nothing) (90,90,90)
+    (bones,poses) = bravais FCube (a,a,a) (90,90,90)
 
 polyCrystal formula xmls = case getStructure xmls of
     Ionic ions -> genIonStructure CCP ions
@@ -76,10 +76,10 @@ genColor c = if pole c == Plus then blue else yellow
 --------- 14 kinds of Bravais Grid ------------
 type WireObject = [VisObject Float]
 
-bravais :: Bravais -> (Float, Maybe Float, Maybe Float) -> (Float,Float,Float) -> (WireObject, [V3 Float])
+bravais :: Bravais -> (Float, Float, Float) -> (Float,Float,Float) -> (WireObject, [V3 Float])
 
 -- 立方格子
-bravais PCube (a,_,_ ) _ = ([Cube (2*a) Wireframe blue], [V3 x y z | x <- [-a,a], y <- [-a,a], z <- [-a,a]])
+bravais PCube (a,_,_ ) _ = bravais PTriclinic (a,a,a) (90,90,90)
 
 bravais ICube (a,_,_) _ = ([Cube (2*a) Wireframe blue] ++ wires, V3 0 0 0 : [V3 x y z | x <- [-a,a], y <- [-a,a], z <- [-a,a]]) where
     wires = map toBone $ map (\(x,y) -> [V3 x y a, V3 (-x) (-y) (-a)]) [(x,y) | x <- [-a,a], y <- [-a,a]]
@@ -87,44 +87,40 @@ bravais ICube (a,_,_) _ = ([Cube (2*a) Wireframe blue] ++ wires, V3 0 0 0 : [V3 
 bravais FCube (a,_,_) degs = (pcube++wire, pposes ++ fposes) where
     wire = concat $ map (\(V3 x y z) -> map toBone [[V3 x y z, V3 x (-y) (-z)],[V3 x y z, V3 (-x) y (-z)],[V3 x y z, V3 (-x) (-y) z]]) pposes
     fposes = pposes ++ [V3 x y z | x <- [-a,0,a], y <- [-a,0,a], z <- [-a,0,a], x==y && y/=z && y==0 || y==z&&z/=x && z==0 || z==x && x/=y && x==0]
-    (pcube,pposes) = bravais PCube (a,Nothing,Nothing) degs
+    (pcube,pposes) = bravais PCube (a,a,a) degs
 
 -- 正方格子
-bravais PSquare (a,_,Just c) _ = (wire, poses) where
-    wire = [ Scale (1,1,c/a) $ Cube (2*a) Wireframe blue ]
-    poses = [V3 x y z | x <- [-a,a], y <- [-a,a], z <- [-c,c]]
+bravais PSquare (a,_, c) _ = bravais PTriclinic (a,a,c) (90,90,90)
 
-bravais ISquare (a,_,Just c) degs = (wire++pwire, V3 0 0 0 : pposes) where
+bravais ISquare (a,_, c) degs = (wire++pwire, V3 0 0 0 : pposes) where
     wire = map toBone $ map (\(x,y) -> [V3 x y c, V3 (-x) (-y) (-c)]) [(x,y) | x <- [-a,a], y <- [-a,a]]
-    (pwire, pposes) = bravais PSquare (a,Nothing,Just c) degs
+    (pwire, pposes) = bravais PSquare (a,a,c) degs
 
 -- 斜方格子(Diagonal grid)
-bravais PDiagonal (a,Just b,Just c) _ = (wire, poses) where
-    wire = [ Scale (1,b/a,c/a) $ Cube (2*a) Wireframe blue ]
-    poses = [V3 x y z | x <- [-a,a], y <- [-b,b], z <- [-c,c]]
+bravais PDiagonal abc _ = bravais PTriclinic abc (90,90,90)
 
-bravais IDiagonal (a,Just b, Just c) degs = (wire++pwire, V3 0 0 0 : pposes) where
+bravais IDiagonal (a, b, c) degs = (wire++pwire, V3 0 0 0 : pposes) where
     wire = map toBone $ map (\(x,y) -> [V3 x y c, V3 (-x) (-y) (-c)]) [(x,y) | x <- [-a,a], y <- [-b,b]]
-    (pwire, pposes) = bravais PDiagonal (a,Just b, Just c) degs
+    (pwire, pposes) = bravais PDiagonal (a,b, c) degs
 
-bravais FDiagonal (a,Just b, Just c) degs = (pcube++wire, pposes ++ fposes) where
+bravais FDiagonal (a, b, c) degs = (pcube++wire, pposes ++ fposes) where
     wire = concat $ map (\(V3 x y z) -> map toBone [[V3 x y z, V3 x (-y) (-z)],[V3 x y z, V3 (-x) y (-z)],[V3 x y z, V3 (-x) (-y) z]]) pposes
     fposes = pposes ++ [V3 x y z | x <- [-a,0,a], y <- [-b,0,b], z <- [-c,0,c], x==0 && y==0 && z/=0 || x/=0 && y==0 && z==0 || x==0 && y/=0 && z==0]
-    (pcube,pposes) = bravais PDiagonal (a,Just b,Just c) degs
+    (pcube,pposes) = bravais PDiagonal (a,b,c) degs
 
-bravais CDiagonal (a,Just b, Just c) degs = (pcube++wire,V3 0 0 c : V3 0 0 (-c) : pposes) where
+bravais CDiagonal (a, b, c) degs = (pcube++wire,V3 0 0 c : V3 0 0 (-c) : pposes) where
     wire = map toBone $ map (\(x,z) -> [V3 x b z, V3 (-x) (-b) z])[(x,z) | x <- [-a,a], z <- [-c,c]]
-    (pcube,pposes) = bravais PDiagonal (a,Just b,Just c) degs
+    (pcube,pposes) = bravais PDiagonal (a,b,c) degs
 
 -- 単純六方晶系
-bravais PHexagonal (a,_,Just c) _ = (wires, poses) where
+bravais PHexagonal (a,_, c) _ = (wires, poses) where
     wires = vertBone ++ hexbone ++  hexwires ++ map (moveZ (-2*c)) (hexbone ++ hexwires)
     vertBone = map (\deg -> rotZ deg (toBone [V3 (a/2) (sqrt 3/2*a) c, V3 (a/2) (sqrt 3/2*a) (-c)] )) [0,60..300]
     hexbone = map (\deg -> rotZ deg (toBone [V3 (a/2) (sqrt 3/2*a) c, V3 (-a/2) (sqrt 3/2*a) c] )) [0,60..300]
     hexwires = map (\deg -> rotZ deg (toBone [V3 0 0 c, V3 (-a/2) (sqrt 3/2*a) c] )) [0,120,240]
     poses = V3 0 0 c:V3 0 0 (-c):map (rot2D (V3 (a/2) (sqrt 3/2*a) c)) [0,60..300] ++ map (rot2D (V3 (-a/2) (sqrt 3/2*a) (-c))) [0,60..300]
 
-bravais PTrigonal (a,_,Just c) _ = (wires, poses) where
+bravais PTrigonal (a,_, c) _ = (wires, poses) where
     wires = vertBone ++ tribone ++ map (moveZ (-2*c)) tribone
     vertBone = toBone [V3 0 0 c, V3 0 0 (-c)] : map (\deg -> rotZ deg (toBone [V3 (-a/2) (sqrt 3/2*a) c, V3 (-a/2) (sqrt 3/2*a) (-c)] )) [0,60,120]
     tribone = [toBone (V3 0 0 c : vecs)]
@@ -135,23 +131,21 @@ bravais PTrigonal (a,_,Just c) _ = (wires, poses) where
 bravais RTrigonal (a,_,_) (alpha,beta,gamma) = if alpha == beta || beta == gamma then undefined else ([],[])
 
 -- 単斜晶系
-bravais PMonoclinic (a,Just b,Just c) (_,beta,_) = (wires, topvecs++bottomvecs) where
-    wires = vertwires ++ map toBone [last topvecs:topvecs, last bottomvecs:bottomvecs]
-    vertwires = map (toBone.(\(a,b) -> [a,b])) $ zip topvecs bottomvecs
-    topvecs = [V3 (-a) (-b) c, V3 (-a) b c, V3 a b c, V3 a (-b) c, V3 (-a) (-b) c]
-    bottomvecs = map (\(V3 x y z) -> V3 (x+c*cos beta) y (-z)) topvecs
+bravais PMonoclinic abc (_,beta,_) = bravais PTriclinic abc (90,beta,90)
 
-bravais CMonoclinic ls@(_,_,Just c) ds@(_,beta,_) = (tops++bottoms++pwire, poses++pposes) where
+bravais CMonoclinic ls@(_,_, c) ds@(_,beta,_) = (tops++bottoms++pwire, poses++pposes) where
     tops = map (\(V3 x y z) -> toBone [V3 x y z, V3 (-x) (-y) z]) $ filter (\(V3 x y z) -> x > 0 && z > 0) pposes
     bottoms = map (\(V3 x y z) -> toBone [V3 x y z, V3 (-x+2*c*cos beta) (-y) z]) $ filter (\(V3 x y z) -> x > 0 && z < 0) pposes
     poses = [V3 0 0 c, V3 (c*cos beta) 0 (-c)] 
     (pwire, pposes) = bravais PMonoclinic ls ds
 
-bravais PTriclinic (a,Just b, Just c) (alpha, beta, gamma) = (wires, tops++bottoms) where
+bravais PTriclinic (a, b, c) (alpha, beta, gamma) = (wires, tops++bottoms) where
     wires = map toBone [tops, bottoms] ++ vertwires
     tops = [V3 (-a*sin gamma) (-b) c, V3 (-a*sin gamma) b c, V3 (a*sin gamma) (b+2*a*cos gamma) c, V3 (a*sin gamma) (-b+2*a*cos gamma) c, V3 (-a*sin gamma) (-b) c]
     bottoms = map (\(V3 x y z) -> V3 (x+c*cos beta) (y+c*sin alpha) (z-2*c)) tops
     vertwires = map (toBone.(\(v1,v2) -> [v1,v2])) $ zip tops bottoms
 
+invert (V3 a b c) = V3 (-a) (-b) (-c)
+(-.) = invert
 
 
